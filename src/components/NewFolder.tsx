@@ -1,35 +1,47 @@
-import React, { useState } from "react";
-import {
-  MdCreateNewFolder,
-  MdUpload,
-  MdFolder
-} from "react-icons/md";
+import React, { useState,useRef, useEffect } from "react";
+import { MdCreateNewFolder } from "react-icons/md";
 
-function NewFolder() {
-  const [folders, setFolders] = useState<string[]>([]);
+type NewFolderProps = {
+  onAddFolder: (folderName: string) => void;
+  existingFolders:string[];
+};
+
+function NewFolder({ onAddFolder,existingFolders }: NewFolderProps) {
   const [showModal, setShowModal] = useState(false);
   const [folderName, setFolderName] = useState("");
-  const [uploadedFiles, setUploadedFiles] = useState<Record<string, File[]>>({});
+  const [error, setError] = useState("");
+  const inputref = useRef<HTMLInputElement>(null);
 
   const handleAddFolder = () => {
-    if (folderName.trim()) {
-      setFolders((prev) => [...prev, folderName.trim()]);
+    const trimmed =folderName.trim();
+    if(!trimmed){
+      setError("Folder name required");
+      return;
+    }
+    const exists =existingFolders.some((f)=>f.toLowerCase()===trimmed.toLowerCase())
+    if(exists){
+      setError("Folder name must be unique.")
+      return;
+    }
+      onAddFolder(trimmed);
       setFolderName("");
       setShowModal(false);
-    }
+      setError("");
   };
 
-  const handleFileUpload = (folder: string, files: FileList | null) => {
-    if (!files) return;
-    const fileArray = Array.from(files);
-    setUploadedFiles((prev) => ({
-      ...prev,
-      [folder]: [...(prev[folder] || []), ...fileArray],
-    }));
-  };
+  const handleCancel=()=>{
+    setShowModal(false);
+    setFolderName("");
+    setError("")
+  }
+
+  useEffect(()=>{
+    if(showModal)
+      setTimeout(()=>inputref.current?.focus(),100);
+  },[showModal])
 
   return (
-    <div className="w-full max-w-xl p-4">
+    <div className="w-full max-w-md p-4">
       {/* New Folder Button */}
       <button
         onClick={() => setShowModal(true)}
@@ -39,57 +51,34 @@ function NewFolder() {
         <span className="font-medium">NEW FOLDER</span>
       </button>
 
-      {/* Folder List */}
-      <div className="mt-6 space-y-4">
-        {folders.map((folder, idx) => (
-          <div
-            key={idx}
-            className="p-3 space-y-2 border rounded-lg shadow-sm bg-gray-50"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 font-medium text-gray-800">
-                <MdFolder />
-                {folder}
-              </div>
-              <label className="flex items-center gap-1 px-2 py-1 text-sm text-blue-600 cursor-pointer hover:underline">
-                <MdUpload />
-                Upload
-                <input
-                  type="file"
-                  multiple
-                  className="hidden"
-                  onChange={(e) => handleFileUpload(folder, e.target.files)}
-                />
-              </label>
-            </div>
-
-            {/* Uploaded Files Preview */}
-            {uploadedFiles[folder]?.length > 0 && (
-              <ul className="text-sm text-gray-700 list-disc list-inside">
-                {uploadedFiles[folder].map((file, index) => (
-                  <li key={index}>{file.name}</li>
-                ))}
-              </ul>
-            )}
-          </div>
-        ))}
-      </div>
-
       {/* Modal Popup */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-full max-w-sm p-6 bg-white rounded-lg shadow-lg">
             <h2 className="mb-4 text-lg font-semibold">Create New Folder</h2>
             <input
+            ref={inputref}
               type="text"
               placeholder="Folder name"
               value={folderName}
-              onChange={(e) => setFolderName(e.target.value)}
+              onChange={(e) =>{ 
+                setFolderName(e.target.value)
+                setError("")
+                }
+              }
+              onKeyDown={(e)=>{
+                if(e.key ==="Enter"){
+               handleAddFolder()
+                }
+              }}
               className="w-full px-3 py-2 mb-4 border rounded-md"
             />
+
+            {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+            
             <div className="flex justify-end gap-3">
               <button
-                onClick={() => setShowModal(false)}
+                onClick={ handleCancel}
                 className="px-4 py-2 text-gray-500 hover:text-gray-700"
               >
                 Cancel

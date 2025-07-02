@@ -1,13 +1,10 @@
-import NewFolder from './NewFolder'
 import FolderSelection from './FolderSelection'
-import Toolbar from './Toolbar'
+import FolderManager from './FolderManager'
 
 function MainPanel() {
   return (<>
     <div className='p-4 overflow-hidden border rounded-lg shadow-sm '>
-      <div className='mb-2' >
-        <Toolbar/></div>
-        <div><NewFolder/></div>
+        <div><FolderManager/></div>
       <div className=''>
         <FolderSelection/></div>
         </div>
