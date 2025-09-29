@@ -137,6 +137,34 @@ app.post("/folders/upload/:folderId", upload.array("files"), async (req, res) =>
 });
 
 //search file by name
+// app.get("/files/search", async (req, res) => {
+//   try {
+//     const { name } = req.query; // ?name=Screenshot.png
+//     if (!name) {
+//       return res.status(400).json({ message: "Please provide a file name" });
+//     }
+
+//     const files = await FileItem.find({ name: new RegExp(name, "i") })
+//     .populate("folderId", "name"); ;
+
+//     if (!files || files.length === 0) {
+//       return res.status(404).json({ message: "No files found" });
+//     }
+
+//     res.json(files.map(f => ({
+//       _id: f._id,
+//       folderId: f.folderId?._id,
+//       folderName:f.folderId?.name ||"",
+//       name: f.name,
+//       type: f.type,
+//       size: f.size,
+//       createdAt: f.createdAt
+//     })));
+//   } catch (err) {
+//     console.error("Search error:", err);
+//     res.status(500).json({ error: "Search failed" });
+//   }
+// });
 app.get("/files/search", async (req, res) => {
   try {
     const { name } = req.query; // ?name=Screenshot.png
@@ -144,14 +172,17 @@ app.get("/files/search", async (req, res) => {
       return res.status(400).json({ message: "Please provide a file name" });
     }
 
-    const files = await FileItem.find({ name: new RegExp(name, "i") });
+    const files = await FileItem.find({ name: new RegExp(name, "i") })
+    .populate("folderId", "name"); ;
 
     if (!files || files.length === 0) {
       return res.status(404).json({ message: "No files found" });
     }
 
     res.json(files.map(f => ({
-      id: f._id,
+      _id: f._id,
+      folderId: f.folderId?._id,
+      folderName:f.folderId?.name ||"",
       name: f.name,
       type: f.type,
       size: f.size,
@@ -193,7 +224,7 @@ app.get("/folders/:folderId/files", async (req, res) => {
     const folder = await Folder.findById(folderId);
     if (!folder) return res.status(404).json({ message: "Folder not found" });
 
-    const files = await FileItem.find({ folderId: folder._id });
+    const files = await FileItem.find({ folderId: folder?._id });
 
     res.status(200).json({files });
   } catch (err) {
@@ -312,8 +343,6 @@ if (action === "copy") {
     res.status(500).json({ message: "Paste failed", error: err.message });
   }
 });
-
-
 
 mongoose.connect("mongodb+srv://admin2:admin123@cluster0.anuv5v8.mongodb.net/file_explorer_db",{ useNewUrlParser: true, useUnifiedTopology: true })
 .then(()=>{

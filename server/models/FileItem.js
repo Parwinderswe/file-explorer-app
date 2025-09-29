@@ -6,6 +6,7 @@ const fileItemSchema = new mongoose.Schema({
   type: String,
   data:Buffer,
   folderId: { type: mongoose.Schema.Types.ObjectId, ref: "Folder", required: true },
+  folderName: String,
   createdAt: { type: Date, default: Date.now },
   downloadToken: { type: String, unique: true, index: true },
   downloadTokenExpiresAt: Date,
